@@ -1,0 +1,256 @@
+#A = [[1,2], [3,4]]
+#X = [[2,4]]
+#B = [[0,0]]
+#M x N --> M rows x N columns for matrix A
+#N x P --> N rows x P columns for matrix X
+#A * x = B
+#
+#M = 2
+#N = 2
+#P = 1
+#
+#for i in range (M):
+#  for j in range (P):
+#    for k in range (N):
+#      B[i][j] = A[i][k] * x[k][j] + B[i][j]
+#
+#s0--> Matrix A[0][] Address
+#s1--> Matrix X[0][[] Address
+#s2--> Row A
+#s3--> Col A
+#s4--> Row B
+#s5--> Col B
+#s6--> Matrix B
+#s7--> Matrix B column
+#t0--> i
+#t1--> j
+#t2--> k
+#t3--> Matrix B position
+#t4--> MatrixA[i][k]
+#t5--> MatrixX[k][j]
+#t6--> MatrixB[i][j]
+#t7--> A [i][k] * x[k][j]
+#
+#.data
+#matrixA:    .word  1, 2, 3, 4   #Content of matrixA in array form
+#matrixX:    .word  2, 4  #Content of matrixX in array form
+#sizeA:      .word  2, 2      #Defines matrixA as being a 2x3 matrix
+#sizeX:      .word  2, 1       #Defines matrixX as being a 3x2 matrix
+#matrixB:     .word  0:2     #Initialize matrixB as being an array of length 4
+#matrixB_size: .word 2
+#
+#matrixA => 0 * 4 = 0
+#matrixX => 6 * 4 = 24
+#matrixB => 12 * 4 = 48
+#sizeA => 16 * 4 = 64
+#sizeX => 18 * 4 = 72
+#sizeB => 20 * 4 = 80
+#
+#
+#data_mem = [1,2,  3,4,		#matrixA
+#            2,4	        #matrixX
+#            0,0,               #matrixB
+#            2,2,               #sizeA
+#            2,1,               #sizeX
+#            2,1 ]              #sizeB
+#
+#
+#
+#
+##
+#tab:        .asciiz "\t"
+#newLine:    .asciiz "\n"
+#            .globl main
+#.text
+#********************** Page 1 ****************************************
+#main:  	#la $s0, matrixA     #s0 set to base address of matrixA
+#        #lui $s0, matrixA
+#		#ori $s0, $zero, matrixA
+#		#ori $s0, $zero, 0x0
+0x00000000 0x34100000 or_$S0,$zero,$zero
+#		#la $s1, matrixX     #s1 set to base address of matrixX
+#        #lui $s1, matrixA
+#		#ori $s1, $zero, 0x0
+0x00000004 0x34110000 or_$S1,$zero,0005
+#		#la $s2, sizeA      #s2 set to base address of sizeA
+#        #lui $s2, sizeA
+#		#ori $s2, $zero, 0x0
+0x00000008 0x34120000 or_$S2,$zero,$zero
+#        #lw $s3, 0x2($s2)      #s3 set to second val in sizeA (col #N)
+0x0000000C 0x8E530002 lw_$s3,0($s2)
+#        #lw $s2, 0x0 ($s2)      #s2 set to first val in sizeA (row #M)
+0x00000010 0x34120002 lw $s2, 0($s2)
+#        #la $s4, sizeX            #s4 set to base address of sizeX
+#        #lui $s2, sizeX
+#		#ori $s2, $zero, 0x0
+0x00000014 0x34120000 or_$S2,$zero,$zero
+#        #lw $s5, 0x4 ($s4)      #s5 set to second val in sizeX (col #P)
+0x00000018 0x34150001 lw_$s5,0($s4)
+#        #lw $s4, 0x0 ($s4)      #s4 set to first val in sizeX (row #N)
+#        #ori $s4,$zero,0x0002
+0x0000002C 0x34140002 ori_$s4,$zero,0x0002
+#        #la $s6, matrixB      #s6 set to base adress of matrixB
+#        #lui $s6, matrixB
+# #ori $s6,$zero,0x0006
+0x0000001C 0x34160006 or_$S6,$zero,$zero
+#
+#		#add $s7, $s5, $zero     #s7 set to col #P in matrixB
+0x00000020 0x02A0B820 add_$s7,$s7,$zero
+#		#add $t0, $zero, $zero   #Set t0 to zero. i = 0
+0x00000024 0x00004020 add_$t0,$zero,$zero
+# #add $t1, $zero, $zero   #Set t1 to zero. j = 0
+0x00000028 0x00004820 add_$t1,$zero,$zero
+#		#add $t2, $zero, $zero   #Set t2 to zero. k = 0
+0x0000002C 0x00005020 add_$t2,$zero,$zero
+#		#li $t3, 0       #matrixB position set to zero
+#		#addi $t3, $t3, 0x0
+0x00000030 0x216B0000 addi_$t3,$t3,0x0
+#
+#i_loop: #beq $t0, $s2, i_end #End i_loop if i = rowsA
+0x00000034 0x11120001 beq_t0,$s2,i_end
+0x00000038 0x00000000 nop
+0x0000003C 0x00000000 nop
+#
+#j_loop: #beq $t1, $s5, j_end #End j_loop if j = colsX
+0x00000040 0x11350017 beq_t1,$s5,j_end
+0x00000044 0x00000000 nop
+0x00000048 0x00000000 nop
+#k_loop: #beq $t2, $s4, k_end #End k_loop if k = rowsX
+0x0000004C 0x1154000C beq_t2,$s6,k_end
+0x00000050 0x00000000 nop
+0x00000054 0x00000000 nop
+#loop body
+#
+#li $t4, 0
+#addi $t4, $t4, 0
+0x00000058 0x218C0000 addi_$t4, $t4, 0x0
+#li $t5, 0
+0x0000005C 0x21AD0000 addi_$t5, $t5, 0x0
+#li $t6, 0
+#addi $t6, $t6, 0x0
+0x00000060 0x21CE0000 addi_$t6, $t6, 0x0
+#i * N + k - 1
+#mul $t4, $t0, $s3   		   #i * #N col in matrixA
+#mult $t0, $s3
+0x00000064 0x01130018 mult_$t0, $S3, 0x0
+#mflo $t4
+0x00000068 0x00006012 mflo_$t4
+#add $t4, $t4, $t2              #t4 + k
+0x0000006C 0x018A6020 add_$t4, $t4, 0x0
+#sll  $t4, $t4, 2               #convert index to byte offset
+0x00000070 0x000C6080 sll_$t4, $t4, 0x2
+#add $t4, $t4, $s0              #Now points to value at matrixA[i][k]
+0x00000074 0x01906020 add_t4, $t4, $s0
+#lw $t4, 0x0($t4)               # Loads value at matrixA[i][k]
+0x00000078 0x8D8C0000 lw_$t4, 0x0($t4)
+#
+#k * P + j - 1
+#mul $t5, $t2, $s5   		   #k * #P col in matrixX
+#mult $t2,$s5
+0x0000007C 0x01550018 mult_$t2, $s5
+#mflo $t5
+0x00000080 0x00006812 mflo_$t5
+#add $t5, $t5, $t1   		   #t5 + j
+0x00000084 0x01A96820 add_$t5, $t5, $t1
+#sll  $t5, $t5, 2               # convert index to byte offset
+0x00000088 0x000D6880 sll_$t5, $t5, 0x2
+#addu $t5, $t5, $s1             #t5 now points to value at matrixX[k][j]
+0x0000008C 0x01B16821 addu_$t5, $t5, $s1
+#lw $t5, 0x0($t5)                 #t5 loads value at matrixX[k][j]
+0x00000090 0x8DAD0000 lw_$t5, 0x0($t5)
+#
+#
+#i * P + j - 1
+#mul $t6, $t0, $s7   #i * #P col in matrixB
+#mult $t0, $s7
+0x00000094 0x01170018 mult_$t0, $s7
+#mflo $t6
+0x00000098 0x00007012 mflo_$t6
+#add $t6, $t6, $t1   #t6 + j
+0x0000009C 0x01C97020 add_$t6, $t6, $t1
+#sll $t6, $t6, 2
+0x00000100 0x000E7080 sll_$t6, $t6, 0x2
+#addu $t6, $t6, $s6   #t6 now points to value at matrixB[i][j]
+0x00000104 0x01D67021 addu_$t6, $t6, $s6
+#lw $t8, 0x0($t6)      #t6 loads value at matrixB[i][j]
+0x00000108 0x8DD80000 lw_$t8, 0x0($t6)
+#mul $t7, $t4, $t5   #t7 = matrixA[i][k]*matrixX[k][j]
+#mult $t4, $t5
+0x0000010C 0x018D0018 mult_$t4, $t5
+#mflo $t7
+0x00000110 0x00007812 mflo_$t7
+#add $t8, $t8, $t7   #t8 = matrixB[i][j] + matrixA[i][k]*matrixX[k][j]
+0x00000114 0x030FC020 add_$t8, $t8, $t7
+#sw $t8, 0x0($t6)
+0x00000118 0x00000000 nop
+0x0000011C 0x00000000 nop
+0x00000120 0xADD80000 sw_$t8, 0x0($t6)
+0x00000124 0x00000000 nop
+0x00000128 0x00000000 nop
+#
+#end loop body
+#
+#addi $t2, $t2, 1    #k++
+0x0000012C 0x214A0001 addi_$t2,$t2,0x1
+#j k_loop        #Return to start of k_loop
+#k_end:
+#addi $t1, $t1, 1    #j++
+0x00000130 0x21290001 addi_$t1,$t1,0x1
+#li $t2, 0       #Resets k counter to 0
+#addi $t2, $t2, 0
+0x00000134 0x214A0000 addi_$t2,$t2,0x1
+#j j_loop        #Return to start of j_loop
+#j_end:
+#addi $t0, $t0, 1    #i++
+0x00000138 0x21080001 addi $t0, $t0,0x1
+#li $t1, 0       #Resets j counter to 0
+#addi $t1, $t1, 0
+0x0000014C 0x21290000 addi $t1, $t1,0x1
+#        j i_loop        #Return to start of i_loop
+#
+0x00000150 0x00000000 i_end: .end
+#lw $t3, matrixB_size
+#la $t1, matrixB
+#lui $t1,matrixA
+#ori $t1,$t1,matrixA
+#li $t2,0
+#print_loop:
+#	beq $t2,$t3,print_loop_end
+#	lw $a0, ($t1)
+#	#li $v0,1
+#	addi $v0, $v0, 1
+#syscall
+#li	$v0,4
+#	addi $v4, $v4, 4
+#la	$a0,newLine
+#syscall
+#	addi $t2,$t2,1
+#	addi $t1,$t1,4
+#	j print_loop
+#print_loop_end: .end
+#
+#  nop
+0x00000054 0x00000000 nop
+0x00000058 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
+0x00000008 0x00000000 nop
